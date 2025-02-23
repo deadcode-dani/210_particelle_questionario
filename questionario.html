@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Questionario - Teoria di Jung</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .options {
+      margin-left: 20px;
+    }
+    /* Stile condiviso bottone blu, testo bianco */
+    .cta-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007BFF;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .cta-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>210 Particelle - Questionario di 56 Domande</h1>
+
+  <!-- Pulsante per riempire automaticamente le risposte (scopo test) -->
+  <button type="button" class="cta-button" onclick="fillRandomAnswers()">Riempimento Random</button>
+
+  <!-- Sezione per il numero casuale -->
+  <div class="section"> 
+      <p> 
+    Inserisci un numero da 0 a 99.999.999.
+    <br>
+    Questo numero verrà usato per generare in modo casuale la posizione di partenza di ciascuna particella.
+    <br>
+    Usa un numero che ti piace, che ricorre nella tua vita oppure semplicemente il primo che ti viene in mente...
+  </p>
+    <label for="num_input"><strong>Inserisci un numero:</strong></label>
+    <input type="number" id="num_input" name="num_input" required>
+  </div>
+  
+  <!-- Form del questionario -->
+  <form id="questionnaire">
+    <div id="questions-container"></div>
+    <button type="button" class="cta-button" onclick="submitQuestionnaire()">Invia</button>
+  </form>
+  
+  <script>
+    /************************************************************
+     * Array di 56 domande con le relative opzioni.
+     * Ogni oggetto contiene:
+     *  - text: il testo della domanda.
+     *  - options: un array con due opzioni (A e B).
+     ************************************************************/
+    const questions = [
+      {
+        text: "Quando incontrate persone nuove:",
+        options: [
+          { label: "Parlate e ascoltate nella stessa misura?", value: "A" },
+          { label: "Ascoltate più di quanto non parlate?", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle due seguenti affermazioni corrisponde alla vostra modalità di affrontare la vita in generale:",
+        options: [
+          { label: "Fare e basta", value: "A" },
+          { label: "Controllare le alternative possibili", value: "B" }
+        ]
+      },
+      {
+        text: "Che cosa vi piace di più di voi stessi:",
+        options: [
+          { label: "I vostri modi freddi e razionali?", value: "A" },
+          { label: "I vostri modi cordiali e comprensivi?", value: "B" }
+        ]
+      },
+      {
+        text: "Che cosa vi riesce meglio:",
+        options: [
+          { label: "Cambiare marcia quando è necessario?", value: "A" },
+          { label: "Concentrarvi su un compito finché non è ultimato?", value: "B" }
+        ]
+      },
+      {
+        text: "Preferite una vita sociale:",
+        options: [
+          { label: "Con molti amici e conoscenti?", value: "A" },
+          { label: "Con poche persone a cui vi sentite vicini?", value: "B" }
+        ]
+      },
+      {
+        text: "Quando cercate di capire una cosa:",
+        options: [
+          { label: "Insistete per conoscere i dettagli?", value: "A" },
+          { label: "Vi fate un'idea generale e rimandate i dettagli in un secondo momento?", value: "B" }
+        ]
+      },
+      {
+        text: "Che cosa vi interessa di più:",
+        options: [
+          { label: "Sapere come la pensano gli altri?", value: "A" },
+          { label: "Sapere quali sono i sentimenti degli altri?", value: "B" }
+        ]
+      },
+      {
+        text: "Che tipo di lavoro preferite:",
+        options: [
+          { label: "Un lavoro che consente reazioni pronte e fulminee?", value: "A" },
+          { label: "Un lavoro che vi permette di fissare degli obiettivi e di fare i passi necessari per realizzarli?", value: "B" }
+        ]
+      },
+      {
+        text: "Se un'abbondante nevicata vi impedisce di andare a scuola o al lavoro:",
+        options: [
+          { label: "Vi chiedete che cosa vi state perdendo?", value: "A" },
+          { label: "Vi godete l'inatteso momento di solitudine?", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Mi interessa l'esperienza delle persone: quel che fanno, chi conoscono.", value: "A" },
+          { label: "Mi interessano i sogni e i progetti delle persone: dove stanno andando, quel che pensano.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Sono capace di fare un programma che funzioni.", value: "A" },
+          { label: "Riesco a convincere gli altri a sottoscrivere un programma e a collaborare allo sforzo di realizzarlo.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Mi capita di provare a fare qualcosa d'impulso, solo per vedere che cosa succede.", value: "A" },
+          { label: "Prima di intraprendere un'azione voglio conoscere le possibili conseguenze.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Penso lì per lì, mentre parlo.", value: "A" },
+          { label: "Prima di parlare, rifletto a quel che dirò.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "So sempre più o meno che aspetto hanno le cose.", value: "A" },
+          { label: "Tendo a non notare che aspetto hanno le cose, o almeno non di primo acchito.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Tendo a essere analitico, forse anche un po' scettico.", value: "A" },
+          { label: "Mi interessa la gente e mi preoccupo di quel che le capita.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Mi piace lasciarmi spazio per nuove possibilità, anche dopo che si è stabilito un programma.", value: "A" },
+          { label: "Una volta stabilito un programma voglio che sia quello.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Chi mi conosce in generale sa quel che è importante per me.", value: "A" },
+          { label: "Se non mi sento vicino a una persona, non dico quali sono le cose importanti per me.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Se mi piace una certa attività mi ci impegno di frequente fino a che non arrivo a svolgerla bene.", value: "A" },
+          { label: "Una volta che mi sono impratichito di una certa attività, desidero cambiarla o cercare qualcos'altro da fare.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Nel prendere una decisione valuto i pro e i contro delle mie scelte.", value: "A" },
+          { label: "Mi interessa quel che hanno fatto gli altri in circostanze analoghe.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Mi piace apprendere dall'esperienza, e quindi spesso faccio le cose a modo mio.", value: "A" },
+          { label: "In genere imparo seguendo le istruzioni e adattandole alle mie necessità.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Quando rimango solo troppo a lungo divento irrequieto.", value: "A" },
+          { label: "Quando non riesco ad avere abbastanza tempo per me stesso divento irrequieto.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Non mi interessano le idee astratte che non abbiano qualche applicazione pratica.", value: "A" },
+          { label: "Mi piacciono le idee in sé, e mi piace giocarci con la fantasia.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Quando faccio un accordo, conto sulle cose che so e sulle mie capacità tattiche.", value: "A" },
+          { label: "Quando faccio un accordo, stabilisco un terreno d'intesa con l'altra persona.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Quando lavoro a qualcosa, ogni tanto ho bisogno di prendermi una pausa.", value: "A" },
+          { label: "Quando lavoro a qualcosa, non voglio essere interrotto.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Quando sto insieme agli altri, mi ricarico di energia e non smetterei mai.", value: "A" },
+          { label: "Quando sto insieme agli altri, mi scarico e ho bisogno di spazio.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "L'ambiente che mi circonda è importante e influisce sul mio umore.", value: "A" },
+          { label: "L'atmosfera non è importante se quello che sto facendo mi piace.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale delle seguenti affermazioni fareste vostra?",
+        options: [
+          { label: "Le persone contano sul mio senso di giustizia e sulla mia capacità di trattarle con rispetto.", value: "A" },
+          { label: "Le persone sanno che quando hanno bisogno di me possono contare sulla mia presenza.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Prendere le cose come vengono, facendo quel che vi sentite sul momento.", value: "A" },
+          { label: "Programmare in linea di massima le cose che voglio fare.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Passo il tempo e faccio cose con gli altri.", value: "A" },
+          { label: "Passo il tempo a leggere e passeggiare o fantasticare, da solo.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Torno in un luogo che amo.", value: "A" },
+          { label: "Vado in un luogo dove non sono mai stato.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Porto con me un progetto legato al lavoro o alla scuola.", value: "A" },
+          { label: "Rinverdisco rapporti importanti per me.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Dimentico tutte le abitudini quotidiane e penso solo a divertirmi.", value: "A" },
+          { label: "Penso alle cose che dovrò preparare quando le vacanze saranno finite.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Visito località celebri.", value: "A" },
+          { label: "Passo il tempo nei musei e in luoghi più tranquilli.", value: "B" }
+        ]
+      },
+      {
+        text: "Quando siete in vacanza, cosa vi viene più naturale?",
+        options: [
+          { label: "Mi concedo un buon pasto in un ristorante che mi piace molto.", value: "A" },
+          { label: "Provo nuovi piatti.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Equilibrato.", value: "A" },
+          { label: "Idealista.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Spontaneo.", value: "A" },
+          { label: "Sistematico.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Aperto.", value: "A" },
+          { label: "Riflessivo.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Pratico.", value: "A" },
+          { label: "Teorico.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Intelligente.", value: "A" },
+          { label: "Comprensivo.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Adattabile.", value: "A" },
+          { label: "Organizzato.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Espansivo.", value: "A" },
+          { label: "Intenso.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Concreto.", value: "A" },
+          { label: "Fantasioso.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Polemico.", value: "A" },
+          { label: "Indagatore.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Entusiasta.", value: "A" },
+          { label: "Determinato.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Equilibrato.", value: "A" },
+          { label: "Profondo.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Ricco di esperienza.", value: "A" },
+          { label: "Impetuoso.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Equanime.", value: "A" },
+          { label: "Compassionevole.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Aperto.", value: "A" },
+          { label: "Diretto alla meta.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Schietto.", value: "A" },
+          { label: "Riservato.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Realistico.", value: "A" },
+          { label: "Utopista.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale aggettivo descrive meglio il modo in cui vi vedete?",
+        options: [
+          { label: "Imparziale.", value: "A" },
+          { label: "Sensibile.", value: "B" }
+        ]
+      },
+      {
+        text: "Cosa preferite in genere?",
+        options: [
+          { label: "Rimandare le incombenze spiacevoli fino a che non sono dell'umore giusto.", value: "A" },
+          { label: "Togliere di mezzo le incombenze spiacevoli per non pensarci più.", value: "B" }
+        ]
+      },
+      {
+        text: "Cosa preferite in genere?",
+        options: [
+          { label: "Riscuotere ammirazione per il mio lavoro anche se non sono soddisfatto di me stesso.", value: "A" },
+          { label: "Creare qualcosa di valore duraturo ma rimanere anonimo.", value: "B" }
+        ]
+      },
+      {
+        text: "Cosa preferite in genere?",
+        options: [
+          { label: "Maturare una grande esperienza in un campo che mi piace.", value: "A" },
+          { label: "Avere molte possibilità tra cui scegliere.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale dei seguenti slogan corrisponde meglio al vostro punto di vista?",
+        options: [
+          { label: "La gente tende a confondere la forza dei sentimenti con la forza delle argomentazioni.", value: "A" },
+          { label: "La logica è l'arte di sbagliarsi tutti convinti.", value: "B" }
+        ]
+      },
+      {
+        text: "Quale dei seguenti slogan corrisponde meglio al vostro punto di vista?",
+        options: [
+          { label: "Chi esita è perduto.", value: "A" },
+          { label: "Prima di spiccare il volo, guarda giù.", value: "B" }
+        ]
+      }
+    ];
+
+    // Inserimento dinamico delle domande in #questions-container
+    const container = document.getElementById("questions-container");
+    questions.forEach((question, index) => {
+      const questionDiv = document.createElement("div");
+      questionDiv.className = "question";
+      
+      const questionLabel = document.createElement("p");
+      questionLabel.textContent = (index + 1) + ". " + question.text;
+      questionDiv.appendChild(questionLabel);
+      
+      const optionsDiv = document.createElement("div");
+      optionsDiv.className = "options";
+      question.options.forEach(option => {
+        const labelEl = document.createElement("label");
+        const radioInput = document.createElement("input");
+        radioInput.type = "radio";
+        radioInput.name = "question" + index;
+        radioInput.value = option.value;
+        labelEl.appendChild(radioInput);
+        labelEl.appendChild(document.createTextNode(" " + option.label));
+        optionsDiv.appendChild(labelEl);
+        optionsDiv.appendChild(document.createElement("br"));
+      });
+      
+      questionDiv.appendChild(optionsDiv);
+      container.appendChild(questionDiv);
+    });
+
+    // Pulsante per riempire automaticamente tutte le risposte
+    function fillRandomAnswers() {
+      for (let i = 0; i < questions.length; i++) {
+        const radios = document.getElementsByName("question" + i);
+        // Scegli casualmente tra "A" e "B"
+        const randomValue = Math.random() < 0.5 ? "A" : "B";
+        for (let radio of radios) {
+          if (radio.value === randomValue) {
+            radio.checked = true;
+            break;
+          }
+        }
+      }
+      // Riempi anche il numero casuale (solo per comodità di test)
+      document.getElementById("num_input").value = Math.floor(Math.random() * 1000);
+    }
+
+    // Funzione per gestire l'invio del questionario
+    function submitQuestionnaire() {
+      const numInputEl = document.getElementById("num_input");
+      const num_input = numInputEl.value.trim();
+      if (num_input === "") {
+        alert("Per favore, inserisci un numero casuale.");
+        numInputEl.focus();
+        return;
+      }
+      
+      // Array che conterrà 'A' o 'B' per ogni risposta
+      const responses = [];
+      for (let i = 0; i < questions.length; i++) {
+        const radios = document.getElementsByName("question" + i);
+        let answered = false;
+        for (let radio of radios) {
+          if (radio.checked) {
+            responses.push(radio.value);
+            answered = true;
+            break;
+          }
+        }
+        if (!answered) {
+          alert("Per favore, rispondi a tutte le domande prima di inviare.");
+          return;
+        }
+      }
+      
+      // Definizione degli indici per ciascuna dimensione (0-based)
+      const res_e_indices = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52];
+      const res_s_indices = [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53];
+      const res_t_indices = [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54];
+      const res_p_indices = [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55];
+      
+      function countA(indices) {
+        return indices.reduce((acc, idx) => acc + (responses[idx] === "A" ? 1 : 0), 0);
+      }
+      
+      const res_e = countA(res_e_indices);
+      const res_s = countA(res_s_indices);
+      const res_t = countA(res_t_indices);
+      const res_p = countA(res_p_indices);
+
+      // Passiamo i parametri a risultati.html via query string
+      // encodeURIComponent è utile per evitare problemi con spazi o simboli
+      const queryParams = new URLSearchParams({
+        res_e,
+        res_s,
+        res_t,
+        res_p,
+        num_input
+      });
+
+      // Apri la pagina dei risultati (stessa finestra o nuova, a tua scelta)
+      // Se vuoi nella stessa finestra:
+      window.location.href = "risultati.html?" + queryParams.toString();
+
+      // Se preferissi una nuova finestra/scheda, useresti:
+      // window.open("risultati.html?" + queryParams.toString(), "_blank");
+    }
+  </script>
+</body>
+</html>
