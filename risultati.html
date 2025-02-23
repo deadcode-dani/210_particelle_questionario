@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Risultati</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      /* Per permettere all'iframe di allargarsi bene su dispositivi piccoli,
+         usa box-sizing: border-box su * (non strettamente necessario, ma spesso utile) */
+      box-sizing: border-box;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .result {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px 5px 0 0;
+      cursor: pointer;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #007BFF;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    /* Stili per l’iframe quadrato e fluido */
+    #iframe-container {
+      /* per evidenza puoi avere un max-width, se preferisci limitare la grandezza */
+      max-width: 800px;
+      margin: 20px 0; /* spazio intorno */
+    }
+
+    #iframe-container iframe {
+      display: block;        /* rimuove spazi bianchi indesiderati */
+      width: 100%;           /* usa tutta la larghezza disponibile */
+      aspect-ratio: 1 / 1;   /* forza un rapporto 1:1 (quadrato) */
+      border: none;          /* nessun bordo */
+    }
+  </style>
+</head>
+<body>
+  <h1>210 Particelle - Risultato Finale</h1>
+
+  <!-- Valori dei parametri -->
+  
+<div style="display: none;">
+  <div class="result"><strong>res_e:</strong> <span id="res_e_value"></span></div>
+  <div class="result"><strong>res_s:</strong> <span id="res_s_value"></span></div>
+  <div class="result"><strong>res_t:</strong> <span id="res_t_value"></span></div>
+  <div class="result"><strong>res_p:</strong> <span id="res_p_value"></span></div>
+</div>
+
+  <!-- Codice di personalità -->
+  <div class="result"><strong>Codice personalità:</strong> <span id="personality_code"></span></div>
+
+  <h2>Immagine della tua personalità</h2>
+    <p> 
+    A seconda del dispositivo, potrebbero volerci diversi secondi per il completamento dell'immagine. Consigliamo di aspettare uno o due minuti prima di scaricare l'immagine con l'apposito bottone.
+  </p>
+  <!-- Contenitore dell’iframe quadrato -->
+  <div id="iframe-container">
+    <iframe id="resultIframe" title="Immagine generata"></iframe>
+  </div>
+
+  <!-- Pulsanti -->
+  <button class="cta-button" onclick="simulateS()">Salva immagine</button>
+  <button class="cta-button" onclick="copyLink()">Copia link allo sketch</button>
+  <button class="cta-button" onclick="openSketchFullscreen()">Apri sketch a schermo interno</button>
+
+  <script>
+    // ---- PARTE 1: Lettura parametri da query string ----
+    const urlParams = new URLSearchParams(window.location.search);
+    const res_e = parseInt(urlParams.get("res_e") || "0", 10);
+    const res_s = parseInt(urlParams.get("res_s") || "0", 10);
+    const res_t = parseInt(urlParams.get("res_t") || "0", 10);
+    const res_p = parseInt(urlParams.get("res_p") || "0", 10);
+    const num_input = urlParams.get("num_input") || "";
+
+    // Mostra i valori nella pagina
+    document.getElementById("res_e_value").textContent = res_e;
+    document.getElementById("res_s_value").textContent = res_s;
+    document.getElementById("res_t_value").textContent = res_t;
+    document.getElementById("res_p_value").textContent = res_p;
+
+    // ---- PARTE 2: Costruzione URL dello sketch p5 (nudo e crudo) ----
+    const iframeUrl = "https://deadcode-dani.github.io/210_Particelle/" +
+      "?res_e=" + encodeURIComponent(res_e) +
+      "&res_s=" + encodeURIComponent(res_s) +
+      "&res_t=" + encodeURIComponent(res_t) +
+      "&res_p=" + encodeURIComponent(res_p) +
+      "&num_input=" + encodeURIComponent(num_input);
+
+    // Imposta src nel nostro iframe
+    const iframe = document.getElementById("resultIframe");
+    iframe.src = iframeUrl;
+
+    // ---- PARTE 3: Calcolo del "Codice personalità" ----
+    function getDimensionLetters(score, letterA, letterB) {
+      if (score < 7) return [letterA];
+      if (score > 7) return [letterB];
+      return [letterA, letterB]; // caso di parità
+    }
+    const eArr = getDimensionLetters(res_e, "E", "I");
+    const sArr = getDimensionLetters(res_s, "S", "N");
+    const tArr = getDimensionLetters(res_t, "T", "F");
+    const pArr = getDimensionLetters(res_p, "P", "J");
+
+    function cartesian(a1, a2, a3, a4) {
+      const result = [];
+      for (const x of a1) {
+        for (const y of a2) {
+          for (const z of a3) {
+            for (const w of a4) {
+              result.push(x + y + z + w);
+            }
+          }
+        }
+      }
+      return result;
+    }
+    const personalityCodes = cartesian(eArr, sArr, tArr, pArr);
+    document.getElementById("personality_code").textContent = personalityCodes.join(", ");
+
+    // ---- PARTE 4: "Copia link allo sketch" ----
+    function copyLink() {
+      const linkToCopy = iframeUrl;
+      // Fallback con execCommand per compatibilità
+      const textArea = document.createElement("textarea");
+      textArea.value = linkToCopy;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert("Link allo sketch copiato negli appunti!");
+      } catch (err) {
+        alert("Impossibile copiare il link. Seleziona e copia manualmente:\n" + linkToCopy);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // ---- PARTE 5: "Salva immagine" via postMessage ----
+    function simulateS() {
+      if (!iframe) {
+        alert("Impossibile trovare l'iframe.");
+        return;
+      }
+      iframe.contentWindow.postMessage('saveCanvas', '*');
+    }
+
+    // ---- PARTE 6: Aprire lo sketch in una nuova tab/finestra ----
+    function openSketchFullscreen() {
+      window.open(iframeUrl, "_blank");
+    }
+  </script>
+</body>
+</html>
