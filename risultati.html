@@ -112,8 +112,8 @@
 
     // ---- PARTE 3: Calcolo del "Codice personalità" ----
     function getDimensionLetters(score, letterA, letterB) {
-      if (score < 7) return [letterA];
-      if (score > 7) return [letterB];
+      if (score > 7) return [letterA];
+      if (score < 7) return [letterB];
       return [letterA, letterB]; // caso di parità
     }
     const eArr = getDimensionLetters(res_e, "E", "I");
